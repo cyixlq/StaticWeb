@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>重量转换可视化工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4F46E5',
+                        secondary: '#10B981',
+                        accent: '#F59E0B',
+                        neutral: '#1F2937',
+                        'neutral-light': '#F3F4F6'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .transition-custom {
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .scale-hover {
+                @apply hover:scale-105 transition-all duration-300;
+            }
+            .card-shadow {
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            }
+            .select-custom {
+                @apply appearance-none bg-white border border-gray-300 rounded-lg px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-custom;
+            }
+            .select-icon {
+                @apply pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500;
+            }
+            .option-item {
+                @apply flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer transition-colors;
+            }
+            .option-icon {
+                @apply w-8 h-8 rounded-full flex items-center justify-center mr-3;
+            }
+            /* 定义9个缩放级别，从最小到最大 */
+            .size-scale-1 { transform: scale(0.5); }
+            .size-scale-2 { transform: scale(0.65); }
+            .size-scale-3 { transform: scale(0.8); }
+            .size-scale-4 { transform: scale(0.95); }
+            .size-scale-5 { transform: scale(1.1); }
+            .size-scale-6 { transform: scale(1.25); }
+            .size-scale-7 { transform: scale(1.4); }
+            .size-scale-8 { transform: scale(1.55); }
+            .size-scale-9 { transform: scale(1.7); }
+        }
+    </style>
+</head>
+<body class="font-inter bg-gradient-to-br from-indigo-50 to-purple-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- 页面标题 -->
+        <header class="text-center mb-12">
+            <h1 class="text-[clamp(2rem,5vw,3.5rem)] font-bold text-neutral mb-4 text-shadow">
+                <i class="fa-solid fa-balance-scale text-primary mr-3"></i>重量转换可视化工具
+            </h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                输入你的体重，选择一种物品，直观了解你的体重相当于多少个该物品
+            </p>
+        </header>
+
+        <!-- 主内容区 -->
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- 输入区域 -->
+            <section class="lg:col-span-1 bg-white rounded-xl p-6 card-shadow scale-hover">
+                <h2 class="text-xl font-semibold text-neutral mb-4 flex items-center">
+                    <i class="fa-solid fa-calculator text-primary mr-2"></i>输入与转换
+                </h2>
+                <form id="weightForm" class="space-y-6">
+                    <div>
+                        <label for="weightInput" class="block text-sm font-medium text-gray-700 mb-1">
+                            输入体重 (kg)
+                        </label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                                <i class="fa-solid fa-weight-scale"></i>
+                            </span>
+                            <input 
+                                type="number" 
+                                id="weightInput" 
+                                class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-custom"
+                                placeholder="例如: 65"
+                                required
+                            >
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">
+                            选择物品
+                        </label>
+                        <div class="relative">
+                            <div id="customSelect" class="select-custom cursor-pointer flex items-center justify-between">
+                                <span id="selectedOptionText" class="text-gray-500">请选择一种物品</span>
+                                <i class="fa-solid fa-chevron-down text-gray-400 transition-transform duration-300" id="selectArrow"></i>
+                            </div>
+                            <div id="optionsList" class="hidden absolute z-10 mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 max-h-60 overflow-y-auto">
+                                <!-- 选项将通过JS动态生成 -->
+                            </div>
+                            <input type="hidden" id="itemSelect" name="itemSelect" required>
+                        </div>
+                    </div>
+                    
+                    <button 
+                        type="submit" 
+                        class="w-full bg-primary hover:bg-primary/90 text-white font-medium py-3 px-4 rounded-lg shadow-lg shadow-primary/20 transition-custom flex items-center justify-center"
+                    >
+                        <i class="fa-solid fa-exchange-alt mr-2"></i>
+                        转换并查看结果
+                    </button>
+                </form>
+            </section>
+
+            <!-- 结果展示区域 -->
+            <section class="lg:col-span-2 bg-white rounded-xl p-6 card-shadow">
+                <h2 class="text-xl font-semibold text-neutral mb-4 flex items-center">
+                    <i class="fa-solid fa-images text-secondary mr-2"></i>转换结果
+                </h2>
+                
+                <div id="resultContainer" class="hidden">
+                    <div class="mb-6 p-4 bg-neutral-light rounded-lg">
+                        <h3 class="text-lg font-medium text-neutral mb-2" id="resultTitle"></h3>
+                        <p class="text-gray-600" id="resultDescription"></p>
+                    </div>
+                    
+                    <div id="itemsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-6">
+                        <!-- 物品图片将动态加载到这里 -->
+                    </div>
+                    
+                    <div id="paginationControls" class="mt-8 flex justify-between items-center">
+                        <button id="prevPage" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-custom flex items-center opacity-50 cursor-not-allowed">
+                            <i class="fa-solid fa-chevron-left mr-2"></i>上一页
+                        </button>
+                        <span id="pageInfo" class="text-gray-600"></span>
+                        <button id="nextPage" class="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg transition-custom flex items-center">
+                            下一页<i class="fa-solid fa-chevron-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="emptyState" class="py-16 text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+                        <i class="fa-solid fa-search text-primary text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-700 mb-2">请输入体重并选择物品</h3>
+                    <p class="text-gray-500 max-w-md mx-auto">
+                        使用左侧的表单输入您的体重，选择一种物品，然后点击"转换并查看结果"按钮来可视化您的体重相当于多少个该物品。
+                    </p>
+                </div>
+                
+                <div id="errorState" class="hidden py-16 text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
+                        <i class="fa-solid fa-exclamation-triangle text-red-500 text-2xl"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-red-700 mb-2">出错了</h3>
+                    <p id="errorMessage" class="text-gray-500 max-w-md mx-auto">
+                        请确保您输入了有效的体重值并选择了一种物品。
+                    </p>
+                </div>
+            </section>
+        </main>
+
+        <!-- 物品信息卡片 -->
+        <section class="mt-12">
+            <h2 class="text-xl font-semibold text-neutral mb-6 text-center">物品参考信息</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- 鸡蛋卡片 -->
+                <div class="bg-white rounded-xl p-4 card-shadow scale-hover">
+                    <div class="flex items-center mb-3">
+                        <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center mr-3">
+                            <i class="fa-solid fa-egg text-yellow-500"></i>
+                        </div>
+                        <h3 class="font-medium text-neutral">鸡蛋</h3>
+                    </div>
+                    <p class="text-sm text-gray-600">平均单个重量约50克，是日常生活中常见的蛋白质来源。</p>
+                </div>
+                
+                <!-- 小鸡卡片 -->
+                <div class="bg-white rounded-xl p-4 card-shadow scale-hover">
+                    <div class="flex items-center mb-3">
+                        <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center mr-3">
+                            <i class="fa-solid fa-dove text-amber-500"></i>
+                        </div>
+                        <h3 class="font-medium text-neutral">小鸡</h3>
+                    </div>
+                    <p class="text-sm text-gray-600">刚孵化的小鸡平均重量约300克，毛茸茸的非常可爱。</p>
+                </div>
+                
+                <!-- 小狗卡片 -->
+                <div class="bg-white rounded-xl p-4 card-shadow scale-hover">
+                    <div class="flex items-center mb-3">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                            <i class="fa-solid fa-dog text-blue-500"></i>
+                        </div>
+                        <h3 class="font-medium text-neutral">小狗</h3>
+                    </div>
+                    <p class="text-sm text-gray-600">小型犬种幼犬平均重量约5千克，活泼好动。</p>
+                </div>
+                
+                <!-- 南瓜卡片 -->
+                <div class="bg-white rounded-xl p-4 card-shadow scale-hover">
+                    <div class="flex items-center mb-3">
+                        <div class="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center mr-3">
+                            <i class="fa-solid fa-pumpkin text-orange-500"></i>
+                        </div>
+                        <h3 class="font-medium text-neutral">南瓜</h3>
+                    </div>
+                    <p class="text-sm text-gray-600">普通食用南瓜平均重量约3千克，富含维生素。</p>
+                </div>
+                
+                <!-- 苹果卡片 -->
+                <div class="bg-white rounded-xl p-4 card-shadow scale-hover">
+                    <div class="flex items-center mb-3">
+                        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mr-3">
+                            <i class="fa-solid fa-apple-whole text-red-500"></i>
+                        </div>
+                        <h3 class="font-medium text-neutral">苹果</h3>
+                    </div>
+                    <p class="text-sm text-gray-600">中等大小苹果平均重量约200克，营养丰富。</p>
+                </div>
+                
+                <!-- 橘子卡片 -->
+                <div class="bg-white rounded-xl p-4 card-shadow scale-hover">
+                    <div class="flex items-center mb-3">
+                        <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center mr-3">
+                            <i class="fa-solid fa-lemon text-amber-500"></i>
+                        </div>
+                        <h3 class="font-medium text-neutral">橘子</h3>
+                    </div>
+                    <p class="text-sm text-gray-600">普通橘子平均重量约150克，酸甜可口。</p>
+                </div>
+                
+                <!-- 小猫卡片 -->
+                <div class="bg-white rounded-xl p-4 card-shadow scale-hover">
+                    <div class="flex items-center mb-3">
+                        <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mr-3">
+                            <i class="fa-solid fa-cat text-purple-500"></i>
+                        </div>
+                        <h3 class="font-medium text-neutral">小猫</h3>
+                    </div>
+                    <p class="text-sm text-gray-600">幼猫平均重量约2千克，喜欢玩耍和睡觉。</p>
+                </div>
+                
+                <!-- 萝卜卡片 -->
+                <div class="bg-white rounded-xl p-4 card-shadow scale-hover">
+                    <div class="flex items-center mb-3">
+                        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mr-3">
+                            <i class="fa-solid fa-carrot text-red-500"></i>
+                        </div>
+                        <h3 class="font-medium text-neutral">萝卜</h3>
+                    </div>
+                    <p class="text-sm text-gray-600">中等大小萝卜平均重量约250克，是常见的蔬菜。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 页脚 -->
+        <footer class="mt-16 text-center text-gray-500 text-sm">
+            <p>© 2025 重量转换可视化工具 | Develop by
+                <a href="https://github.com/cyixlq" target="_blank" class="text-red-500">cy&nbsp;<i class="fa-solid fa-heart"></i>&nbsp;xlq</a>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // 物品数据 - 添加大小等级
+        const itemsData = {
+            egg: {
+                name: '鸡蛋',
+                weight: 0.05, // 单位：kg
+                image: 'images/鸡蛋.png',
+                icon: 'fa-egg',
+                iconColor: 'text-yellow-500',
+                bgColor: 'bg-yellow-100',
+                sizeClass: 'size-scale-1' // 最小
+            },
+            orange: {
+                name: '橘子',
+                weight: 0.15,
+                image: 'images/橘子.png',
+                icon: 'fa-lemon',
+                iconColor: 'text-amber-500',
+                bgColor: 'bg-amber-100',
+                sizeClass: 'size-scale-2' // 次小
+            },
+            apple: {
+                name: '苹果',
+                weight: 0.2,
+                image: 'images/苹果.png',
+                icon: 'fa-apple-whole',
+                iconColor: 'text-red-500',
+                bgColor: 'bg-red-100',
+                sizeClass: 'size-scale-3' // 较小
+            },
+            chick: {
+                name: '小鸡',
+                weight: 0.3,
+                image: 'images/小鸡.png',
+                icon: 'fa-dove',
+                iconColor: 'text-amber-500',
+                bgColor: 'bg-amber-100',
+                sizeClass: 'size-scale-4' // 中等偏小
+            },
+            carrot: {
+                name: '萝卜',
+                weight: 0.25,
+                image: 'images/萝卜.png',
+                icon: 'fa-carrot',
+                iconColor: 'text-red-500',
+                bgColor: 'bg-red-100',
+                sizeClass: 'size-scale-5' // 中等
+            },
+            pumpkin: {
+                name: '南瓜',
+                weight: 3,
+                image: 'images/南瓜.png',
+                icon: 'fa-pumpkin',
+                iconColor: 'text-orange-500',
+                bgColor: 'bg-orange-100',
+                sizeClass: 'size-scale-6' // 中等偏大
+            },
+            watermelon: {
+                name: '西瓜',
+                weight: 5,
+                image: 'images/西瓜.png',
+                icon: 'fa-seedling',
+                iconColor: 'text-green-500',
+                bgColor: 'bg-green-100',
+                sizeClass: 'size-scale-7' // 较大
+            },
+            kitten: {
+                name: '小猫',
+                weight: 2,
+                image: 'images/小猫.png',
+                icon: 'fa-cat',
+                iconColor: 'text-purple-500',
+                bgColor: 'bg-purple-100',
+                sizeClass: 'size-scale-8' // 次大
+            },
+            puppy: {
+                name: '小狗',
+                weight: 5,
+                image: 'images/小狗.png',
+                icon: 'fa-dog',
+                iconColor: 'text-blue-500',
+                bgColor: 'bg-blue-100',
+                sizeClass: 'size-scale-9' // 最大
+            }
+        };
+
+        // 分页相关变量
+        let currentPage = 1;
+        let itemsPerPage = 15;
+        let totalItems = 0;
+        let totalPages = 1;
+        let selectedItem = null;
+        let weightValue = 0;
+
+        // DOM 元素
+        const weightForm = document.getElementById('weightForm');
+        const weightInput = document.getElementById('weightInput');
+        const itemSelect = document.getElementById('itemSelect');
+        const customSelect = document.getElementById('customSelect');
+        const selectedOptionText = document.getElementById('selectedOptionText');
+        const selectArrow = document.getElementById('selectArrow');
+        const optionsList = document.getElementById('optionsList');
+        const resultContainer = document.getElementById('resultContainer');
+        const emptyState = document.getElementById('emptyState');
+        const errorState = document.getElementById('errorState');
+        const errorMessage = document.getElementById('errorMessage');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultDescription = document.getElementById('resultDescription');
+        const itemsGrid = document.getElementById('itemsGrid');
+        const prevPageBtn = document.getElementById('prevPage');
+        const nextPageBtn = document.getElementById('nextPage');
+        const pageInfo = document.getElementById('pageInfo');
+
+        // 初始化自定义选择框
+        function initCustomSelect() {
+            // 生成选项
+            for (const key in itemsData) {
+                const item = itemsData[key];
+                const option = document.createElement('div');
+                option.className = 'option-item';
+                option.dataset.value = key;
+                
+                option.innerHTML = `
+                    <div class="option-icon ${item.bgColor}">
+                        <i class="fa-solid ${item.icon} ${item.iconColor}"></i>
+                    </div>
+                    <span>${item.name} (${item.weight * 1000}g/个)</span>
+                `;
+                
+                option.addEventListener('click', function() {
+                    selectOption(key, item.name);
+                });
+                
+                optionsList.appendChild(option);
+            }
+            
+            // 点击选择框切换下拉列表显示
+            customSelect.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleOptionsList();
+            });
+            
+            // 点击页面其他地方关闭下拉列表
+            document.addEventListener('click', function() {
+                closeOptionsList();
+            });
+        }
+
+        // 切换选项列表显示/隐藏
+        function toggleOptionsList() {
+            if (optionsList.classList.contains('hidden')) {
+                openOptionsList();
+            } else {
+                closeOptionsList();
+            }
+        }
+
+        // 打开选项列表
+        function openOptionsList() {
+            optionsList.classList.remove('hidden');
+            selectArrow.classList.add('rotate-180');
+            customSelect.classList.add('border-primary');
+        }
+
+        // 关闭选项列表
+        function closeOptionsList() {
+            optionsList.classList.add('hidden');
+            selectArrow.classList.remove('rotate-180');
+            customSelect.classList.remove('border-primary');
+        }
+
+        // 选择选项
+        function selectOption(value, text) {
+            itemSelect.value = value;
+            selectedOptionText.textContent = text;
+            selectedOptionText.classList.remove('text-gray-500');
+            selectedOptionText.classList.add('text-gray-700');
+            closeOptionsList();
+            
+            // 添加选中效果
+            const options = optionsList.querySelectorAll('.option-item');
+            options.forEach(option => {
+                if (option.dataset.value === value) {
+                    option.classList.add('bg-primary/5', 'border-l-4', 'border-primary');
+                } else {
+                    option.classList.remove('bg-primary/5', 'border-l-4', 'border-primary');
+                }
+            });
+        }
+
+        // 表单提交处理
+        weightForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            handleConversion();
+        });
+
+        // 处理转换
+        function handleConversion() {
+            const weight = parseFloat(weightInput.value);
+            const itemKey = itemSelect.value;
+
+            // 验证输入
+            if (isNaN(weight) || weight <= 0) {
+                showError('请输入一个有效的正体重值');
+                return;
+            }
+
+            if (!itemKey) {
+                showError('请选择一种物品');
+                return;
+            }
+
+            // 获取选中的物品数据
+            selectedItem = itemsData[itemKey];
+            weightValue = weight;
+            
+            // 计算数量
+            const quantity = Math.round(weight / selectedItem.weight);
+            
+            // 更新结果
+            updateResults(weight, selectedItem, quantity);
+        }
+
+        // 更新结果显示
+        function updateResults(weight, item, quantity) {
+            // 重置分页
+            currentPage = 1;
+            totalItems = quantity;
+            totalPages = Math.ceil(totalItems / itemsPerPage);
+            
+            // 更新结果标题和描述
+            resultTitle.innerHTML = `
+                <i class="fa-solid ${item.icon} ${item.iconColor} mr-2"></i>
+                ${weight} 千克相当于 ${quantity} 个${item.name}<br/>
+                你和${quantity} 个${item.name}差不多重呢！
+            `;
+            
+            resultDescription.textContent = `
+                （每个${item.name}平均重量约为${item.weight * 1000}克，因此${weight}千克相当于${quantity}个${item.name}的总重量。）
+            `;
+            
+            // 显示结果，隐藏空状态和错误状态
+            resultContainer.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+            errorState.classList.add('hidden');
+            
+            // 生成物品图片
+            generateItemsGrid();
+            
+            // 更新分页控件
+            updatePaginationControls();
+        }
+
+        // 生成物品网格
+        function generateItemsGrid() {
+            itemsGrid.innerHTML = '';
+            
+            // 计算当前页要显示的物品范围
+            const startIdx = (currentPage - 1) * itemsPerPage;
+            const endIdx = Math.min(startIdx + itemsPerPage, totalItems);
+            
+            // 创建物品卡片
+            for (let i = startIdx; i < endIdx; i++) {
+                const itemCard = document.createElement('div');
+                // 应用物品特定的缩放类
+                itemCard.className = `bg-white rounded-lg overflow-hidden shadow hover:shadow-md transition-all duration-300 transform hover:-translate-y-1`;
+                
+                itemCard.innerHTML = `
+                    <div class="aspect-square overflow-hidden">
+                        <img src="${selectedItem.image}" alt="${selectedItem.name}" class="w-auto h-auto object-cover transition-transform duration-500 hover:scale-110 ${selectedItem.sizeClass}">
+                    </div>
+                    <div class="p-2 text-center">
+                        <span class="text-sm font-medium text-gray-700">${selectedItem.name} #${i + 1}</span>
+                    </div>
+                `;
+                
+                itemsGrid.appendChild(itemCard);
+            }
+            
+            // 添加占位元素以保持网格布局
+            if (endIdx - startIdx < itemsPerPage) {
+                const remaining = itemsPerPage - (endIdx - startIdx);
+                for (let i = 0; i < remaining; i++) {
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'bg-transparent';
+                    itemsGrid.appendChild(placeholder);
+                }
+            }
+        }
+
+        // 更新分页控件
+        function updatePaginationControls() {
+            // 更新页码信息
+            pageInfo.textContent = `第 ${currentPage} 页，共 ${totalPages} 页`;
+            
+            // 禁用/启用上一页按钮
+            if (currentPage === 1) {
+                prevPageBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                prevPageBtn.disabled = true;
+            } else {
+                prevPageBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                prevPageBtn.disabled = false;
+            }
+            
+            // 禁用/启用下一页按钮
+            if (currentPage === totalPages || totalPages === 0) {
+                nextPageBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                nextPageBtn.disabled = true;
+            } else {
+                nextPageBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                nextPageBtn.disabled = false;
+            }
+        }
+
+        // 上一页
+        prevPageBtn.addEventListener('click', function() {
+            if (currentPage > 1) {
+                currentPage--;
+                generateItemsGrid();
+                updatePaginationControls();
+                
+                // 平滑滚动到结果顶部
+                resultContainer.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+
+        // 下一页
+        nextPageBtn.addEventListener('click', function() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                generateItemsGrid();
+                updatePaginationControls();
+                
+                // 平滑滚动到结果顶部
+                resultContainer.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+
+        // 显示错误
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorState.classList.remove('hidden');
+            resultContainer.classList.add('hidden');
+            emptyState.classList.add('hidden');
+        }
+
+        // 添加输入验证
+        weightInput.addEventListener('input', function() {
+            // 限制为正数
+            if (this.value && parseFloat(this.value) <= 0) {
+                this.value = '';
+            }
+        });
+
+        // 添加页面加载动画
+        document.addEventListener('DOMContentLoaded', function() {
+            // 为页面添加淡入效果
+            document.body.classList.add('opacity-0');
+            setTimeout(() => {
+                document.body.classList.add('transition-opacity', 'duration-500');
+                document.body.classList.remove('opacity-0');
+            }, 100);
+            
+            // 初始化自定义选择框
+            initCustomSelect();
+        });
+    </script>
+</body>
+</html>
