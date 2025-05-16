@@ -1,0 +1,7 @@
+{
+  "code": 10400,
+  "version": "1.4.0",
+  "desc": "1. 修复数据源失效问题。新的数据源不支持旧的历史记录，可能产生封面标题和实际播放的影片不符的现象！！！",
+  "url": "https://github.com/cyixlq/qianbailu/releases/tag/v1.4.0",
+  "must": true
+}
