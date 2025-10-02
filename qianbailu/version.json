@@ -1,7 +1,7 @@
 {
   "code": 10401,
   "version": "1.4.1",
-  "desc": "1. 修复片请求超时的问题\n2. 分享链接失效问题修复\n3. 影片观看页面的猜你喜欢更改为好片推荐",
+  "desc": "1. 修复片源请求超时的问题\n2. 分享链接失效问题修复\n3. 影片观看页面的猜你喜欢更改为好片推荐",
   "url": "https://www.cyixlq.top/StaticWeb/qianbailu/apks/aiqiyi_v1.4.1.apk",
   "must": true
 }
