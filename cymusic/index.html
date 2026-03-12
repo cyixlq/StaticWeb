@@ -1,1 +1,187 @@
-111111
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cy音乐助手 - 3月12日震撼首发</title>
+    <style>
+        /* 全局样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+
+        /* 页面背景与整体布局 */
+        body {
+            background: linear-gradient(135deg, #0d0221 0%, #1a103f 50%, #0f053d 100%);
+            background-attachment: fixed;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* 赛博朋克光效装饰 */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 30% 20%, rgba(0, 255, 255, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 70% 80%, rgba(255, 0, 255, 0.1) 0%, transparent 40%);
+            z-index: -1;
+        }
+
+        /* 头部导航栏 */
+        .header {
+            width: 100%;
+            padding: 20px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            border: 2px solid #00ffff;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+
+        .logo-text {
+            font-size: 28px;
+            font-weight: bold;
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* 核心宣传区域 */
+        .hero {
+            width: 100%;
+            height: calc(100vh - 102px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 5%;
+            position: relative;
+        }
+
+        .hero-title {
+            font-size: 64px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.8);
+            background: linear-gradient(90deg, #00ffff, #ffffff, #ff00ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            background-size: 200% 100%;
+            animation: gradientMove 3s infinite linear;
+        }
+
+        .hero-subtitle {
+            font-size: 24px;
+            margin-bottom: 40px;
+            color: #ccccff;
+            letter-spacing: 2px;
+        }
+
+        .slogan {
+            font-size: 28px;
+            margin-bottom: 60px;
+            color: #00ffff;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.6);
+        }
+
+        /* 下载按钮样式 */
+        .download-btn {
+            padding: 20px 60px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #0d0221;
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.8),
+                        inset 0 0 10px rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 0, 255, 0.9),
+                        inset 0 0 15px rgba(255, 255, 255, 0.7);
+        }
+
+        /* 渐变动画 */
+        @keyframes gradientMove {
+            0% {
+                background-position: 0% 0%;
+            }
+            100% {
+                background-position: 200% 0%;
+            }
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 40px;
+            }
+            .hero-subtitle {
+                font-size: 18px;
+            }
+            .slogan {
+                font-size: 22px;
+            }
+            .download-btn {
+                padding: 15px 40px;
+                font-size: 20px;
+            }
+        }
+    </style>
+	<script>
+	    function download() {
+		      window.location.href = "https://www.cyixlq.top/StaticWeb/cymusic/Cy%E9%9F%B3%E4%B9%90%E5%8A%A9%E6%89%8B_v1.0.apk"
+		}
+	</script>
+</head>
+<body>
+    <!-- 头部导航 -->
+    <header class="header">
+        <div class="logo">
+            <!-- 替换为你的软件图标URL -->
+            <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/826121166d054703bcbef0cdee3d5a04.png~tplv-a9rns2rl98-image.png?lk3s=8e244e95&rcl=202603121438597283B97EF53C45ECC5AF&rrcfp=dafada99&x-expires=2089521539&x-signature=WU%2F5wE%2FJUU2fT1orVahc67yvFCM%3D" 
+                 alt="Cy音乐助手图标" class="logo-img">
+            <div class="logo-text">Cy音乐助手</div>
+        </div>
+    </header>
+
+    <!-- 核心宣传区 -->
+    <section class="hero">
+        <h1 class="hero-title">3月12日 震撼首发</h1>
+        <p class="hero-subtitle">CY MUSIC ASSISTANT</p>
+        <p class="slogan">听见每一份热爱</p>
+        <button class="download-btn" onclick="download()">立即下载</button>
+    </section>
+</body>
+</html>
