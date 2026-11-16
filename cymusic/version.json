@@ -1,7 +1,7 @@
 {
-  "code": 20001,
-  "version": "2.0.0.1",
-  "desc": "1. 测试",
+  "code": 20000,
+  "version": "2.0.0.0",
+  "desc": "1. 初始版本",
   "url": "mqqopensdkapi://bizAgent/qm/qr?url=http%3A%2F%2Fqm.qq.com%2Fcgi-bin%2Fqm%2Fqr%3Ffrom%3Dapp%26p%3Dandroid%26jump_from%3Dwebapi%26k%3D2H-z3dLpYuUVv8JoNR4XISbyjRcbZTlw",
-  "must": true
+  "must": false
 }
